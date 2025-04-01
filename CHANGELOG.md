@@ -1,5 +1,11 @@
 # Change Log
 
+## v1.8.04
+1. Update totally_reset_cursor.py | 更新 totally_reset_cursor.py
+2. Fix: improve Linux Chrome visibility and root user handling | 修復 Linux Chrome 可見性以及 root 用戶處理
+3. Fix: improve Linux path handling and fix permission issues | 修復 Linux 路徑處理以及修復權限問題
+4. Fix: Some Issues | 修復一些問題
+
 ## v1.8.03
 1. Fix: Improve Linux path handling and add case-insensitive Cursor directory detection ｜ 修復Linux系統路徑錯誤以及添加cursor 路徑偵測
 2. Fix: Some Issues | 修復一些問題

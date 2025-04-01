@@ -106,11 +106,31 @@ class NewTempEmail:
             
             # 创建浏览器选项
             co = ChromiumOptions()
-            co.set_argument("--headless=new")
+            
+            # Only use headless for non-OAuth operations
+            if not hasattr(self, 'auth_type') or self.auth_type != 'oauth':
+                co.set_argument("--headless=new")
 
             if sys.platform == "linux":
-                co.set_argument("--no-sandbox")           
-            
+                # Check if DISPLAY is set when not in headless mode
+                if not co.arguments.get("--headless=new") and not os.environ.get('DISPLAY'):
+                    print(f"{Fore.RED}❌ {self.translator.get('email.no_display_found') if self.translator else 'No display found. Make sure X server is running.'}{Style.RESET_ALL}")
+                    print(f"{Fore.YELLOW}ℹ️ {self.translator.get('email.try_export_display') if self.translator else 'Try: export DISPLAY=:0'}{Style.RESET_ALL}")
+                    return False
+                    
+                co.set_argument("--no-sandbox")
+                co.set_argument("--disable-dev-shm-usage")
+                co.set_argument("--disable-gpu")
+                
+                # If running as root, try to use actual user's Chrome profile
+                if os.geteuid() == 0:
+                    sudo_user = os.environ.get('SUDO_USER')
+                    if sudo_user:
+                        actual_home = f"/home/{sudo_user}"
+                        user_data_dir = os.path.join(actual_home, ".config", "google-chrome")
+                        if os.path.exists(user_data_dir):
+                            print(f"{Fore.CYAN}ℹ️ {self.translator.get('email.using_chrome_profile', user_data_dir=user_data_dir) if self.translator else f'Using Chrome profile from: {user_data_dir}'}{Style.RESET_ALL}")
+                            co.set_argument(f"--user-data-dir={user_data_dir}")
             
             co.auto_port()  # 自动设置端口
             
@@ -132,6 +152,10 @@ class NewTempEmail:
                 print(f"{Fore.RED}❌ {self.translator.get('email.browser_start_error')}: {str(e)}{Style.RESET_ALL}")
             else:
                 print(f"{Fore.RED}❌ 启动浏览器失败: {str(e)}{Style.RESET_ALL}")
+            
+            if sys.platform == "linux":
+                print(f"{Fore.YELLOW}ℹ️ {self.translator.get('email.make_sure_chrome_chromium_is_properly_installed') if self.translator else 'Make sure Chrome/Chromium is properly installed'}{Style.RESET_ALL}")
+                print(f"{Fore.YELLOW}ℹ️ {self.translator.get('email.try_install_chromium') if self.translator else 'Try: sudo apt install chromium-browser'}{Style.RESET_ALL}")
             return False
             
     def create_email(self):
